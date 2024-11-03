@@ -1,1 +1,1 @@
-books = Book.objects.all() # output showing the details of the book
+books = Book.objects.get(publication_year = 1984) # output showing the details of the book

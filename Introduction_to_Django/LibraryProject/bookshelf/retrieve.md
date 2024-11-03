@@ -1,0 +1,1 @@
+books = Book.objects.all() # output showing the details of the book

@@ -1,0 +1,1 @@
+new_book = Book(title="1984", author="George Orwell", publication_year=1994) #expected output noting the successful creation.

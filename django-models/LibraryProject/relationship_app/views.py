@@ -1,28 +1,31 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
-from django.http import HttpResponse
+from django.core.exceptions import PermissionDenied
 
-# Helper functions for role checks
-def is_admin(user):
-    return user.userprofile.role == 'Admin'
+def role_required(role):
+    def check_role(user):
+        if user.is_authenticated:
+            return hasattr(user, 'userprofile') and user.userprofile.role == role
+        return False
+    return user_passes_test(check_role)
 
-def is_librarian(user):
-    return user.userprofile.role == 'Librarian'
-
-def is_member(user):
-    return user.userprofile.role == 'Member'
-
-# Admin view
-@user_passes_test(is_admin)
+@role_required('ADMIN')
 def admin_view(request):
-    return HttpResponse("Welcome, Admin!")
+    return render(request, 'relationship_app/admin_dashboard.html', {
+        'title': 'Admin Dashboard',
+        'role': 'Administrator'
+    })
 
-# Librarian view
-@user_passes_test(is_librarian)
+@role_required('LIBRARIAN')
 def librarian_view(request):
-    return HttpResponse("Welcome, Librarian!")
+    return render(request, 'relationship_app/librarian_dashboard.html', {
+        'title': 'Librarian Dashboard',
+        'role': 'Librarian'
+    })
 
-# Member view
-@user_passes_test(is_member)
+@role_required('MEMBER')
 def member_view(request):
-    return HttpResponse("Welcome, Member!")
+    return render(request, 'relationship_app/member_dashboard.html', {
+        'title': 'Member Dashboard',
+        'role': 'Member'
+    })

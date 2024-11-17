@@ -1,90 +1,71 @@
-# views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.contrib import messages
-from .models import UserProfile
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
-def role_required(role):
-    def check_role(user):
-        if user.is_authenticated:
-            return hasattr(user, 'userprofile') and user.userprofile.role == role
-        return False
-    return user_passes_test(check_role)
+def check_admin(user):
+    return user.is_authenticated and user.userprofile.role == 'ADMIN'
+
+def check_librarian(user):
+    return user.is_authenticated and user.userprofile.role == 'LIBRARIAN'
+
+def check_member(user):
+    return user.is_authenticated and user.userprofile.role == 'MEMBER'
 
 @login_required
-@role_required('ADMIN')
+@user_passes_test(check_admin)
 def admin_view(request):
-    """
-    Enhanced admin dashboard view with user management capabilities.
-    Only accessible to users with the Admin role.
-    """
-    try:
-        # Get query parameters for filtering and pagination
-        search_query = request.GET.get('search', '')
-        page_number = request.GET.get('page', 1)
-        role_filter = request.GET.get('role', '')
-
-        # Base queryset for users
-        users = User.objects.select_related('userprofile').all()
-
-        # Apply filters
-        if search_query:
-            users = users.filter(
-                Q(username__icontains=search_query) |
-                Q(email__icontains=search_query) |
-                Q(first_name__icontains=search_query) |
-                Q(last_name__icontains=search_query)
-            )
-
-        if role_filter:
-            users = users.filter(userprofile__role=role_filter)
-
-        # Sort users by username
-        users = users.order_by('username')
-
-        # Pagination
-        paginator = Paginator(users, 10)  # 10 users per page
-        page_obj = paginator.get_page(page_number)
-
-        # System statistics
-        stats = {
-            'total_users': User.objects.count(),
-            'total_admins': UserProfile.objects.filter(role='ADMIN').count(),
-            'total_librarians': UserProfile.objects.filter(role='LIBRARIAN').count(),
-            'total_members': UserProfile.objects.filter(role='MEMBER').count(),
-        }
-
-        context = {
-            'page_obj': page_obj,
-            'stats': stats,
-            'search_query': search_query,
-            'role_filter': role_filter,
-            'roles': UserProfile.ROLE_CHOICES,
-            'title': 'Admin Dashboard',
-            'role': 'Administrator'
-        }
-
-        return render(request, 'relationship_app/admin_dashboard.html', context)
-
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return redirect('home')
+    context = {
+        'title': 'Admin Dashboard',
+        'user': request.user,
+        'admin_actions': [
+            'Manage Users',
+            'View System Logs',
+            'Configure Settings',
+            'Manage Roles'
+        ]
+    }
+    return render(request, 'admin_dashboard.html', context)
 
 @login_required
-@role_required('LIBRARIAN')
+@user_passes_test(check_librarian)
 def librarian_view(request):
-    return render(request, 'relationship_app/librarian_dashboard.html', {
+    context = {
         'title': 'Librarian Dashboard',
-        'role': 'Librarian'
-    })
+        'user': request.user,
+        'librarian_actions': [
+            'Manage Books',
+            'Handle Loans',
+            'Process Returns',
+            'Manage Reservations'
+        ]
+    }
+    return render(request, 'librarian_dashboard.html', context)
 
 @login_required
-@role_required('MEMBER')
+@user_passes_test(check_member)
 def member_view(request):
-    return render(request, 'relationship_app/member_dashboard.html', {
+    context = {
         'title': 'Member Dashboard',
-        'role': 'Member'
-    })
+        'user': request.user,
+        'member_actions': [
+            'Browse Books',
+            'View Loans',
+            'Make Reservations',
+            'View History'
+        ]
+    }
+    return render(request, 'member_dashboard.html', context)
+
+@login_required
+def home_view(request):
+    """Redirects users to their appropriate dashboard based on their role."""
+    role = request.user.userprofile.role
+    
+    if role == 'ADMIN':
+        return HttpResponseRedirect(reverse('admin_dashboard'))
+    elif role == 'LIBRARIAN':
+        return HttpResponseRedirect(reverse('librarian_dashboard'))
+    else:
+        return HttpResponseRedirect(reverse('member_dashboard'))

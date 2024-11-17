@@ -11,11 +11,14 @@ class UserProfile(models.Model):
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=9, choices=ROLE_CHOICES, default='MEMBER')
-
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='MEMBER')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
     def __str__(self):
-        return f"{self.user.username} - {self.role}"
+        return f"{self.user.username} - {self.get_role_display()}"
 
+# Signals to automatically create/update UserProfile when User is created/updated
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

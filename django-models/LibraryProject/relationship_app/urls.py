@@ -1,9 +1,7 @@
 from django.urls import path
-from . import views
+from .views import list_books, LibraryDetailView
 
 urlpatterns = [
-    path('', views.home_view, name='home'),
-    path('admin-dashboard/', views.admin_view, name='admin_dashboard'),
-    path('librarian-dashboard/', views.librarian_view, name='librarian_dashboard'),
-    path('member-dashboard/', views.member_view, name='member_dashboard'),
+    path('books/', list_books, name='list_books'),  # Route for function-based view
+    path('library/<int:pk>/', LibraryDetailView.as_view(), name='library_detail'),  # Route for class-based view
 ]

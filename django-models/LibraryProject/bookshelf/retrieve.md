@@ -1,1 +1,0 @@
-books = Book.objects.get(publication_year = 1949) # output showing the details of the book

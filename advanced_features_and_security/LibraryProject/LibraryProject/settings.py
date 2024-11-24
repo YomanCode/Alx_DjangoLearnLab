@@ -149,3 +149,13 @@ SECURE_SSL_REDIRECT = True
 CSP_DEFAULT_SRC = ("'self'",)  # Only allow content from the same domain
 CSP_SCRIPT_SRC = ("'self'", "https://trusted-scripts.example.com")  # Allow trusted script domains
 CSP_STYLE_SRC = ("'self'", "https://trusted-styles.example.com")  # Allow trusted style domains
+
+# Security Settings for HTTPS and Secure Cookies
+
+# Redirect all HTTP traffic to HTTPS
+SECURE_SSL_REDIRECT = True
+
+# HTTP Strict Transport Security (HSTS) settings
+SECURE_HSTS_SECONDS = 31536000  # 1 year (time in seconds for HSTS)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
+SECURE_HSTS_PRELOAD = True  # Allow preloading to ensure HTTPS connection

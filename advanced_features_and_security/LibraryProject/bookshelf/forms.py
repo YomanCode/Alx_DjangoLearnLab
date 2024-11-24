@@ -1,6 +1,6 @@
 from django import forms
 
-class BookSearchForm(forms.Form):
+class ExampleForm(forms.Form):
     query = forms.CharField(
         max_length=255,
         required=True,

@@ -1,15 +1,14 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import permission_required
-from django.core.exceptions import PermissionDenied
+from .forms import ExampleForm  # Import the ExampleForm
 from .models import Book
 
-@permission_required('app_name.can_view', raise_exception=True)  # Replace 'app_name' with your app's name
-def book_list(request):
-    """
-    View to display a list of all books, restricted by permission.
-    """
-    try:
-        books = Book.objects.all()  # Fetch all books
-        return render(request, 'books/book_list.html', {'books': books})
-    except PermissionDenied:
-        return render(request, '403.html', status=403)  # Render a custom "403 Forbidden" page
+def search_books(request):
+    form = ExampleForm(request.GET or None)  # Initialize the form with GET data if available
+    books = []
+
+    # If the form is valid, perform the search
+    if form.is_valid():
+        query = form.cleaned_data['query']  # Get the search query from the form
+        books = Book.objects.filter(title__icontains=query)  # Search books by title
+
+    return render(request, 'bookshelf/form_example.html', {'form': form, 'books': books})

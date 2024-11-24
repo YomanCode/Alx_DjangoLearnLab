@@ -12,3 +12,22 @@ def search_books(request):
         books = Book.objects.filter(title__icontains=query)  # Search books by title
 
     return render(request, 'bookshelf/form_example.html', {'form': form, 'books': books})
+
+# Security Settings for HTTPS and Secure Cookies
+
+# Redirect all HTTP traffic to HTTPS
+SECURE_SSL_REDIRECT = True
+
+# HTTP Strict Transport Security (HSTS) settings
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
+SECURE_HSTS_PRELOAD = True  # Allow preloading to ensure HTTPS connection
+
+# Secure cookies (only transmitted over HTTPS)
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Security headers to mitigate clickjacking, MIME sniffing, and XSS attacks
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True

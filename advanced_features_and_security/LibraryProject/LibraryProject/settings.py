@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
@@ -126,3 +127,25 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Disable debug mode in production
+DEBUG = False
+
+# Add secure browser-side protections
+SECURE_BROWSER_XSS_FILTER = True  # Protects against XSS by enabling browser filters
+X_FRAME_OPTIONS = 'DENY'  # Prevents clickjacking
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevents browsers from interpreting files as different MIME types
+
+# Ensure cookies are sent over HTTPS
+CSRF_COOKIE_SECURE = True  # Protects CSRF cookies over HTTPS
+SESSION_COOKIE_SECURE = True  # Protects session cookies over HTTPS
+
+# Add allowed hosts for production
+ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com']
+
+# Optionally, enforce HTTPS (use only if HTTPS is configured)
+SECURE_SSL_REDIRECT = True
+
+CSP_DEFAULT_SRC = ("'self'",)  # Only allow content from the same domain
+CSP_SCRIPT_SRC = ("'self'", "https://trusted-scripts.example.com")  # Allow trusted script domains
+CSP_STYLE_SRC = ("'self'", "https://trusted-styles.example.com")  # Allow trusted style domains

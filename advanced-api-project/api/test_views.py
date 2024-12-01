@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from .models import Book, Author
 
@@ -11,7 +10,7 @@ class BookAPITestCase(APITestCase):
         """
         Set up test data:
         - Create authors and books
-        - Set up a test user and token for authentication
+        - Set up a test user for authentication
         """
         self.author1 = Author.objects.create(name="Author One")
         self.author2 = Author.objects.create(name="Author Two")
@@ -19,10 +18,10 @@ class BookAPITestCase(APITestCase):
         self.book2 = Book.objects.create(title="Book Two", publication_year=2021, author=self.author1)
         self.book3 = Book.objects.create(title="Book Three", publication_year=2019, author=self.author2)
 
+        # Create a test user
         self.user = User.objects.create_user(username="testuser", password="password")
-        self.token = Token.objects.create(user=self.user)
-        self.auth_headers = {"HTTP_AUTHORIZATION": f"Token {self.token.key}"}
 
+        # URL endpoints for the API
         self.list_url = reverse('book-list')
         self.detail_url = lambda pk: reverse('book-detail', kwargs={'pk': pk})
 
@@ -40,12 +39,15 @@ class BookAPITestCase(APITestCase):
 
     def test_authenticated_access(self):
         """Test that authenticated users can perform CRUD operations"""
+        # Authenticate the user
+        self.client.login(username='testuser', password='password')
+
         # Test creating a book
         create_response = self.client.post(self.list_url, {
             'title': 'New Book',
             'publication_year': 2023,
             'author': self.author1.id,
-        }, **self.auth_headers)
+        })
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
 
         # Test updating a book
@@ -53,13 +55,13 @@ class BookAPITestCase(APITestCase):
             'title': 'Updated Book',
             'publication_year': 2022,
             'author': self.author2.id,
-        }, **self.auth_headers)
+        })
         self.assertEqual(update_response.status_code, status.HTTP_200_OK)
         self.book1.refresh_from_db()
         self.assertEqual(self.book1.title, 'Updated Book')
 
         # Test deleting a book
-        delete_response = self.client.delete(self.detail_url(self.book1.id), **self.auth_headers)
+        delete_response = self.client.delete(self.detail_url(self.book1.id))
         self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_filter_books_by_author(self):

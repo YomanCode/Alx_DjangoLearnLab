@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView
 from django.urls import reverse_lazy
 from .models import Post, Comment
@@ -55,7 +55,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return reverse_lazy('post_detail', kwargs={'pk': post.pk})
 
-class CommentUpdateView(LoginRequiredMixin, UpdateView):
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
@@ -63,15 +63,23 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return Comment.objects.filter(author=self.request.user)
 
+    def test_func(self):
+        comment = self.get_object()
+        return comment.author == self.request.user
+
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
 
-class CommentDeleteView(LoginRequiredMixin, DeleteView):
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'blog/comment_confirm_delete.html'
 
     def get_queryset(self):
         return Comment.objects.filter(author=self.request.user)
+
+    def test_func(self):
+        comment = self.get_object()
+        return comment.author == self.request.user
 
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})

@@ -10,4 +10,6 @@ urlpatterns = [
     path('post/new/', views.PostCreateView.as_view(), name='post_create'),
     path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post_update'),
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
+    path('search/', views.search_posts, name='search_posts'),
+    path('tags/<str:tag_name>/', views.posts_by_tag, name='tag_posts'),
 ]

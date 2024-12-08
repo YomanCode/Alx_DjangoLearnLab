@@ -5,9 +5,12 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView, D
 from django.urls import reverse_lazy
 from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 from django.http import Http404
 from django.db.models import Q
 from django.shortcuts import render
+from django.views.generic import View
 
 class PostListView(ListView):
     model = Post
@@ -102,3 +105,21 @@ def posts_by_tag(request, tag_name):
     tag = Tag.objects.get(name=tag_name)
     posts = Post.objects.filter(tags=tag)
     return render(request, 'blog/tag_posts.html', {'posts': posts, 'tag': tag})
+
+class RegisterView(View):
+    def get(self, request):
+        form = UserCreationForm()
+        return render(request, 'registration/register.html', {'form': form})
+
+    def post(self, request):
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f"Account created for {username}! You can now log in.")
+            return redirect('login')
+        return render(request, 'registration/register.html', {'form': form})
+
+@login_required
+def profile_view(request):
+    return render(request, 'profile.html')

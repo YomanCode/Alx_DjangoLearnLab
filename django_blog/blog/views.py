@@ -108,10 +108,12 @@ def posts_by_tag(request, tag_name):
 
 class RegisterView(View):
     def get(self, request):
+        """Handle GET requests for the registration page."""
         form = UserCreationForm()
         return render(request, 'registration/register.html', {'form': form})
 
     def post(self, request):
+        """Handle POST requests for user registration."""
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
@@ -120,6 +122,8 @@ class RegisterView(View):
             return redirect('login')
         return render(request, 'registration/register.html', {'form': form})
 
+
 @login_required
 def profile_view(request):
+    """Display the profile page for authenticated users."""
     return render(request, 'profile.html')

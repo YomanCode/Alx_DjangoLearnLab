@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('posts/<int:post_id>/comments/new/', views.add_comment, name='add-comment'),
-    path('comments/<int:pk>/edit/', views.CommentUpdateView.as_view(), name='edit-comment'),
+    path('comments/<int:pk>/update/', views.CommentUpdateView.as_view(), name='edit-comment'),
     path('comments/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete-comment'),
     path('', views.PostListView.as_view(), name='post_list'),
     path('post/<int:pk>/', views.PostDetailView.as_view(), name='post_detail'),

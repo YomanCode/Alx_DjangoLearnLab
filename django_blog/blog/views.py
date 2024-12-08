@@ -7,9 +7,7 @@ from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.http import Http404
 from django.db.models import Q
-from django.shortcuts import render
 from django.views.generic import View
 
 class PostListView(ListView):
@@ -17,10 +15,12 @@ class PostListView(ListView):
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
 
+
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
+
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -31,6 +31,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+
 class PostUpdateView(LoginRequiredMixin, UpdateView):
     model = Post
     form_class = PostForm
@@ -40,10 +41,12 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
     template_name = 'blog/post_confirm_delete.html'
     success_url = reverse_lazy('post_list')
+
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
@@ -57,8 +60,8 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
-        return reverse_lazy('post_detail', kwargs={'pk': post.pk})
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Comment
@@ -74,6 +77,7 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+
 
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
@@ -92,28 +96,28 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 def search_posts(request):
     query = request.GET.get('q')
+    posts = Post.objects.all()
     if query:
-        posts = Post.objects.filter(
-            Q(title__icontains=query) | 
-            Q(content__icontains=query) | 
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
             Q(tags__name__icontains=query)
         ).distinct()
-    else:
-        posts = Post.objects.all()
+    return render(request, 'blog/search_results.html', {'posts': posts, 'query': query})
+
 
 def posts_by_tag(request, tag_name):
-    tag = Tag.objects.get(name=tag_name)
+    tag = get_object_or_404(Tag, name=tag_name)  # Fixed to handle potential missing tag
     posts = Post.objects.filter(tags=tag)
     return render(request, 'blog/tag_posts.html', {'posts': posts, 'tag': tag})
 
+
 class RegisterView(View):
     def get(self, request):
-        """Handle GET requests for the registration page."""
         form = UserCreationForm()
         return render(request, 'registration/register.html', {'form': form})
 
     def post(self, request):
-        """Handle POST requests for user registration."""
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
@@ -125,5 +129,4 @@ class RegisterView(View):
 
 @login_required
 def profile_view(request):
-    """Display the profile page for authenticated users."""
     return render(request, 'profile.html')

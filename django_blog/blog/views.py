@@ -1,71 +1,36 @@
-from django.contrib.auth import login, logout, authenticate
-from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import UpdateView
+from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Post
 
-# Registration view
-def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('home')
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'blog/register.html', {'form': form})
-
-# Profile view
-def profile(request):
-    return render(request, 'blog/profile.html')
-
+# View to list all posts
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
-    ordering = ['-published_date']
 
+# View to show the details of a single post
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
 
-class PostCreateView(LoginRequiredMixin, CreateView):
+# View to create a new post
+class PostCreateView(CreateView):
     model = Post
-    fields = ['title', 'content']
+    fields = ['title', 'content']  # Fields for the form
     template_name = 'blog/post_form.html'
+    success_url = reverse_lazy('post_list')  # Redirect to the post list after creation
 
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = Post
-    fields = ['title', 'content']
-    template_name = 'blog/post_form.html'
-
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-    def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
-
-class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = Post
-    template_name = 'blog/post_confirm_delete.html'
-    success_url = reverse_lazy('post-list')
-
-    def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
-
+# View to update an existing post
 class PostUpdateView(UpdateView):
     model = Post
-    fields = ['title', 'content']
+    fields = ['title', 'content']  # Fields for the form
     template_name = 'blog/post_form.html'
-    success_url = reverse_lazy('post_list')
+    success_url = reverse_lazy('post_list')  # Redirect to the post list after update
+
+# View to delete a post
+class PostDeleteView(DeleteView):
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('post_list')  # Redirect to the post list after deletion

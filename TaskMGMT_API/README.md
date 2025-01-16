@@ -29,7 +29,3 @@ The project is configured to be deployed on Heroku. The `django_heroku` settings
 ## Custom Exception Handling
 
 Custom exception handling is implemented in the `exceptions.py` file.
-
-## License
-
-This project is licensed under the MIT License.
